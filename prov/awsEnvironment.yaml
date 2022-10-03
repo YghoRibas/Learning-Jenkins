@@ -1,1 +1,43 @@
-
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  There is a simple API
+  template for testing
+  AWS CloudFormation
+Resources:
+  restApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: serveless-api-by-CF
+      EndpointConfiguration: 
+        Types: 
+          - REGIONAL
+  lambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: serveless-function-by-CF
+      Runtime: nodejs12.x
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          var aws = require('aws-sdk')
+          var response = require('cfn-response')
+          exports.handler = function(event, context) {
+              console.log("REQUEST RECEIVED:\n" + JSON.stringify(event))
+              // For Delete requests, immediately send a SUCCESS response.
+              if (event.RequestType == "Delete") {
+                  response.send(event, context, "SUCCESS")
+                  return
+              }
+              var responseStatus = "FAILED"
+              var responseData = {}
+              var functionName = event.ResourceProperties.FunctionName
+              var lambda = new aws.Lambda()
+              lambda.invoke({ FunctionName: functionName }, function(err, invokeResult) {
+                  if (err) {
+                      responseData = {Error: "Invoke call failed"}
+                      console.log(responseData.Error + ":\n", err)
+                  }
+                  else responseStatus = "SUCCESS"
+                  response.send(event, context, responseStatus, responseData)
+              })
+          }
