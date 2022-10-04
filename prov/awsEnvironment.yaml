@@ -4,13 +4,22 @@ Description: >
   template for testing
   AWS CloudFormation
 Resources:
-  restApiGateway:
+  restAPIGateway:
     Type: AWS::ApiGateway::RestApi
     Properties:
       Name: serveless-api-by-CF
       EndpointConfiguration: 
         Types: 
           - REGIONAL
+  restAPIGatewayGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      AuthorizationType: AWS_IAM
+      Integration:
+        IntegrationHttpMethod: GET
+        Type: AWS_PROXY
+        Uri: arn:aws:apigateway:region:subdomain.service|service:path|action/service_api //TODO ARRUMAR URI
   lambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
